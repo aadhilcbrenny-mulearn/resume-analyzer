@@ -1,5 +1,7 @@
+const apiBaseUrl = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
 async function request(url, options) {
-  const res = await fetch(url, options);
+  const res = await fetch(`${apiBaseUrl}${url}`, options);
   if (res.status === 204) return null;
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || "Request failed.");

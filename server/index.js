@@ -8,7 +8,19 @@ const { analyze } = require("./analyzer");
 const { getAiFeedback } = require("./llm");
 
 const app = express();
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Origin is not allowed by CORS."));
+  },
+}));
 app.use(express.json());
 
 // PDF stays in memory only; nothing is written to disk
@@ -18,6 +30,10 @@ const upload = multer({
 });
 
 const fail = (res, status, error) => res.status(status).json({ error });
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true });
+});
 
 app.post("/api/analyze", upload.single("resume"), async (req, res) => {
   try {

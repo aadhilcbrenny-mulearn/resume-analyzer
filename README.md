@@ -14,9 +14,40 @@ PostgreSQL + Express + React (Vite) + Node. Scores a PDF resume against a job de
 3. Client (new terminal):
    ```
    cd client
+   cp .env.example .env      # keep the local API URL unless the server uses another port
    npm install
    npm run dev               # http://localhost:5173  (proxies /api to :5000)
    ```
+
+## Deploying to Render and Vercel
+
+Deploy the `server` directory as a Render Web Service and the `client` directory as a Vercel project. Configure environment variables in each platform's dashboard; do not commit `.env` files or secrets.
+
+### Render server variables
+
+Set these variables on the Render service:
+
+| Variable | Value |
+| --- | --- |
+| `DATABASE_URL` | The external connection string for your hosted PostgreSQL database |
+| `CLIENT_ORIGIN` | The exact Vercel URL, for example `https://resume-check.vercel.app` |
+| `GEMINI_API_KEY` | Your Gemini API key (optional) |
+| `GEMINI_MODEL` | A model available to your Gemini account, for example `gemini-2.5-flash` |
+| `PORT` | Usually omitted; Render provides this automatically |
+
+Use `npm install` as the build command and `npm start` as the start command. The server health-check URL is `/api/health`.
+
+### Vercel client variable
+
+Set this variable for the Vercel project and redeploy after changing it:
+
+| Variable | Value |
+| --- | --- |
+| `VITE_API_URL` | The public Render URL, for example `https://resume-check-api.onrender.com` |
+
+`VITE_*` variables are embedded into the browser bundle, so only use them for public values such as the API URL. Never put database passwords or Gemini keys in the client environment.
+
+The client uses the Vite proxy only during local development. In the Vercel build, `VITE_API_URL` makes requests directly to the Render API, while `CLIENT_ORIGIN` allows that Vercel origin through CORS.
 
 ## API
 - `POST /api/analyze`  multipart: `resume` (PDF), `jobTitle`, `jobDescription` → `{ id }`
